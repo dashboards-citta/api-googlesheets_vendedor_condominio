@@ -34,9 +34,10 @@ router.get("/vendedores", async (request, response) => {
     // Transformação dos dados
     const vendedores = rows
       .filter(row => row[0] && row[1])  
-      .map(([id, nome_vendedor]) => ({
+      .map(([id, nome_vendedor, email]) => ({
         id,
-        nome_vendedor
+        nome_vendedor,
+        email
       }));
 
     if (vendedores.length === 0) {
@@ -169,11 +170,12 @@ router.get("/vendedor/:id", async (request, response) => {
     }
 
     //  Montar resposta
-    const [vendedorId, nome_vendedor] = vendedorEncontrado;
+    const [vendedorId, nome_vendedor, email] = vendedorEncontrado;
 
     return response.status(200).json({
       id: vendedorId,
-      nome_vendedor
+      nome_vendedor,
+      email
     });
 
   } catch (error) {
