@@ -3,9 +3,10 @@ require('dotenv').config();
 
 const getAuthSheets = async ()=> {
   const GOOGLE_APPLICATION_CREDENTIALS = process.env.GOOGLE_CREDENTIALS_JSON 
+
   const auth = new google.auth.GoogleAuth({
-    GOOGLE_APPLICATION_CREDENTIALS,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+    credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
   const client = await auth.getClient();
