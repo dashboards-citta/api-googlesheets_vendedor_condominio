@@ -89,9 +89,18 @@ router.get("/condominios", async (request, response) => {
     // Transformação dos dados
     const condominos = rows
       .filter(row => row[0] && row[1])  
-      .map(([id, nome_condomino]) => ({
+      .map(([id, nome_condomino,id_cidade, cidade, id_uf, uf, sigla, endereco, numero, cep, bairro]) => ({
         id,
-        nome_condomino
+        nome_condomino,
+        id_cidade,
+        cidade,
+        id_uf,
+        uf,
+        sigla,
+        endereco,
+        numero,
+        cep,
+        bairro
       }));
 
     if (condominos.length === 0) {
@@ -224,11 +233,20 @@ router.get("/condominio/:id", async (request, response) => {
     }
 
     //  Montar resposta
-    const [condominoId, nome_condomino] = condominoEncontrado;
+    const [condominoId, nome_condomino,id_cidade, cidade, id_uf, uf, sigla, endereco, numero, cep, bairro] = condominoEncontrado;
 
     return response.status(200).json({
       id: condominoId,
-      nome_condomino
+      nome_condomino,
+      id_cidade,
+      cidade,
+      id_uf,
+      uf,
+      sigla,
+      endereco,
+      numero,
+      cep,
+      bairro
     });
 
   } catch (error) {
