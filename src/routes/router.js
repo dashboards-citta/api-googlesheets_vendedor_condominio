@@ -325,7 +325,7 @@ router.get("/tarifas", async (request, response) => {
 });
 
 
-router.get("/tarifas/:id", async (request, response) => {
+router.get("/tarifa/:id", async (request, response) => {
   try {
     const { id } = request.params;
 
