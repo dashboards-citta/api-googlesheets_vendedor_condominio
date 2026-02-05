@@ -264,4 +264,135 @@ router.get("/condominio/:id", async (request, response) => {
   }
 });
 
+router.get("/tarifas", async (request, response) => {
+  try {
+    
+    const { googleSheets, auth, spreadsheetId } = await getAuthSheets();
+
+    if (!spreadsheetId) {
+      return response.status(500).json({
+        message: 'Spreadsheet ID não configurado'
+      });
+    }
+    // Busca dados da planilha
+    const getRows = await googleSheets.spreadsheets.values.get({
+      auth,
+      spreadsheetId,
+      range: "Tarifas!A2:Z1001",
+    });
+
+    const rows = getRows?.data?.values;
+
+    if (!rows || rows.length === 0) {
+      return response.status(404).json({
+        message: 'Dados não encontrados ou planilha vazia'
+      });
+    }
+
+    // Transformação dos dados
+    const tarifas = rows
+      .filter(row => row[0] && row[1])  
+      .map(([id_tarifas, plano_de_voz, fixo_local, fixo_ldn, movel_local, movel_ldn, franquia_mensal]) => ({
+        id_tarifas,
+        plano_de_voz,
+        fixo_local,
+        fixo_ldn,
+        movel_local,
+        movel_ldn,
+        franquia_mensal
+      }));
+
+    if (tarifas.length === 0) {
+      return response.status(404).json({
+        message: 'Nenhum tarifas válido encontrado'
+      });
+    }
+
+    // Resposta final
+    return response.status(200).json(tarifas);
+
+  } catch (error) {
+    console.error('Erro ao buscar tarifas:', {
+      message: error.message,
+      stack: error.stack
+    });
+
+    return response.status(500).json({
+      error: 'Erro interno no servidor',
+      message: 'Falha ao buscar tarifas no Google Sheets'
+    });
+  }
+});
+
+
+router.get("/tarifas/:id", async (request, response) => {
+  try {
+    const { id } = request.params;
+
+    if (!id) {
+      return response.status(400).json({
+        message: 'ID do tarifas é obrigatório'
+      });
+    }
+  
+    const { googleSheets, auth, spreadsheetId } = await getAuthSheets();
+
+    if (!spreadsheetId) {
+      return response.status(500).json({
+        message: 'Spreadsheet ID não configurado'
+      });
+    }
+
+    //  Buscar dados da planilha
+    const getRows = await googleSheets.spreadsheets.values.get({
+      auth,
+      spreadsheetId,
+      range: "Tarifas!A2:Z1001",
+    });
+
+    const rows = getRows?.data?.values;
+
+    if (!rows || rows.length === 0) {
+      return response.status(404).json({
+        message: 'Planilha vazia ou dados não encontrados'
+      });
+    }
+
+    //  Procurar vendedor pelo ID
+    const tarifasEncontrado = rows.find(row => String(row[0]) === String(id));
+
+    if (!tarifasEncontrado) {
+      return response.status(404).json({
+        message: `tarifas com ID ${id} não encontrado`
+      });
+    }
+
+    //  Montar resposta
+    const [id_tarifas, plano_de_voz, fixo_local, fixo_ldn, movel_local, movel_ldn, franquia_mensal] = tarifasEncontrado;
+
+    return response.status(200).json({
+      id_tarifas: id_tarifas,
+      plano_de_voz,
+      fixo_local,
+      fixo_ldn,
+      movel_local,
+      movel_ldn,
+      franquia_mensal,
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar tarifas por ID:', {
+      message: error.message,
+      stack: error.stack
+    });
+
+    return response.status(500).json({
+      error: 'Erro interno no servidor',
+      message: 'Falha ao buscar tarifas no Google Sheets'
+    });
+  }
+});
+
+
+
 module.exports = router;
