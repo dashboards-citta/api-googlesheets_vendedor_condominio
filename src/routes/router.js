@@ -394,5 +394,131 @@ router.get("/tarifa/:id", async (request, response) => {
 });
 
 
+router.get("/campanhas", async (request, response) => {
+  try {
+    
+    const { googleSheets, auth, spreadsheetId } = await getAuthSheets();
+
+    if (!spreadsheetId) {
+      return response.status(500).json({
+        message: 'Spreadsheet ID não configurado'
+      });
+    }
+    // Busca dados da planilha
+    const getRows = await googleSheets.spreadsheets.values.get({
+      auth,
+      spreadsheetId,
+      range: "Campanha!A2:Z1001",
+    });
+
+    const rows = getRows?.data?.values;
+
+    if (!rows || rows.length === 0) {
+      return response.status(404).json({
+        message: 'Dados não encontrados ou planilha vazia'
+      });
+    }
+																									
+    // Transformação dos dados
+    const rowsCampanha = rows
+      .filter(row => row[0] && row[1])  
+      .map(([id, campanha, data_inicio, data_termino, cor_mapa, status]) => ({
+        id,
+        campanha,
+        data_inicio,
+        data_termino,
+        cor_mapa,
+        status
+      }));
+
+    if (rowsCampanha.length === 0) {
+      return response.status(404).json({
+        message: 'Nenhum Campanha válido encontrado'
+      });
+    }
+
+    // Resposta final
+    return response.status(200).json(rowsCampanha);
+
+  } catch (error) {
+    console.error('Erro ao buscar Campanha:', {
+      message: error.message,
+      stack: error.stack
+    });
+
+    return response.status(500).json({
+      error: 'Erro interno no servidor',
+      message: 'Falha ao buscar Campanha no Google Sheets'
+    });
+  }
+});
+
+router.get("/campanha/:id", async (request, response) => {
+  try {
+    const { id } = request.params;
+
+    if (!id) {
+      return response.status(400).json({
+        message: 'ID do campanha é obrigatório'
+      });
+    }
+  
+    const { googleSheets, auth, spreadsheetId } = await getAuthSheets();
+
+    if (!spreadsheetId) {
+      return response.status(500).json({
+        message: 'Spreadsheet ID não configurado'
+      });
+    }
+
+    //  Buscar dados da planilha
+    const getRows = await googleSheets.spreadsheets.values.get({
+      auth,
+      spreadsheetId,
+      range: "Campanha!A2:Z1001",
+    });
+
+    const rows = getRows?.data?.values;
+
+    if (!rows || rows.length === 0) {
+      return response.status(404).json({
+        message: 'Planilha vazia ou dados não encontrados'
+      });
+    }
+
+    //  Procurar vendedor pelo ID
+    const campanEncontrado = rows.find(row => String(row[0]) === String(id));
+
+    if (!campanEncontrado) {
+      return response.status(404).json({
+        message: `Campanha com ID ${id} não encontrado`
+      });
+    }
+
+    //  Montar resposta
+    const [id, campanha, data_inicio, data_termino, cor_mapa, status] = campanEncontrado;
+
+    return response.status(200).json({
+      id,
+      campanha,
+      data_inicio,
+      data_termino,
+      cor_mapa,
+      status
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar campanha por ID:', {
+      message: error.message,
+      stack: error.stack
+    });
+
+    return response.status(500).json({
+      error: 'Erro interno no servidor',
+      message: 'Falha ao buscar campanha no Google Sheets'
+    });
+  }
+});
+
 
 module.exports = router;
