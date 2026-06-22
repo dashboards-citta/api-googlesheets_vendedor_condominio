@@ -462,7 +462,7 @@ router.get("/campanha/:id", async (request, response) => {
         message: 'ID do campanha é obrigatório'
       });
     }
-  
+
     const { googleSheets, auth, spreadsheetId } = await getAuthSheets();
 
     if (!spreadsheetId) {
@@ -471,7 +471,6 @@ router.get("/campanha/:id", async (request, response) => {
       });
     }
 
-    //  Buscar dados da planilha
     const getRows = await googleSheets.spreadsheets.values.get({
       auth,
       spreadsheetId,
@@ -486,8 +485,9 @@ router.get("/campanha/:id", async (request, response) => {
       });
     }
 
-    //  Procurar vendedor pelo ID
-    const campanEncontrado = rows.find(row => String(row[0]) === String(id));
+    const campanEncontrado = rows.find(
+      row => String(row[0]) === String(id)
+    );
 
     if (!campanEncontrado) {
       return response.status(404).json({
@@ -495,11 +495,17 @@ router.get("/campanha/:id", async (request, response) => {
       });
     }
 
-    //  Montar resposta
-    const [id, campanha, data_inicio, data_termino, cor_mapa, status] = campanEncontrado;
+    const [
+      campanhaId,
+      campanha,
+      data_inicio,
+      data_termino,
+      cor_mapa,
+      status
+    ] = campanEncontrado;
 
     return response.status(200).json({
-      id,
+      id: campanhaId,
       campanha,
       data_inicio,
       data_termino,
@@ -519,6 +525,5 @@ router.get("/campanha/:id", async (request, response) => {
     });
   }
 });
-
 
 module.exports = router;
